@@ -16,6 +16,6 @@ import java.rmi.RemoteException;
  */
 public interface InterfaceAS extends Remote{
     
-    public ASResponse doLogin(ASRequest request) throws RemoteException;
+    public void doLogin(ASRequest request) throws RemoteException;
     public String sayHello() throws RemoteException;
 }

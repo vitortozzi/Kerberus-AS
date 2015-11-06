@@ -25,7 +25,6 @@ import message.ASTicket;
 import message.ClientRequest;
 import utils.FileUtils;
 import utils.HashUtils;
-import utils.RandomUtils;
 
 /**
  *
@@ -40,9 +39,7 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
     }
     
     @Override
-    public ASResponse doLogin(ASRequest request) {   
-        
-        ASResponse asr = null;
+    public void doLogin(ASRequest request) {   
         
         database = new Database();
         
@@ -55,7 +52,7 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
         /**
          * Descriptografa a mensagem enviada pelo cliente baseado em sua senha
          */
-        FileUtils fileUtils;
+        FileUtils fileUtils = null;
         ClientRequest decrypted = null;
         try {
             String ASFilepath = "F:\\Kerberos\\AS\\clientRequest.des";
@@ -77,8 +74,10 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
         }
         if(decrypted!=null){
             System.out.println("Requisição do cliente desencriptada:");
+            System.out.println("***Passo 1***: AS recebe requisição do cliente");
             decrypted.print();
             
+            //TODO Verificar validade do timestamp
             String sessionKey = "";
             try {
                 sessionKey = HashUtils.generateSessionKey(clientID);
@@ -88,11 +87,40 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
             
             ASAckResponse ackResponse = new ASAckResponse(sessionKey, decrypted.randomNumber, decrypted.timestamp, decrypted.serviceID);
             ASTicket ast = new ASTicket(clientID, decrypted.timestamp, sessionKey, decrypted.serviceID, decrypted.randomNumber);
-            asr = new ASResponse(ackResponse, ast);
+            
+            /**
+             * Retorna ao client o ACK criptografado com a chave do cliente
+             */
+            String clientFilepath = "F:\\Kerberos\\Client\\ack.des";
+            try {
+                fileUtils.writeEncryptedObject(ackResponse, clientFilepath);
+            } catch (IOException ex) {
+                Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvalidKeyException ex) {
+                Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            /**
+             * Retorna ao cliente o Ticket para o TGS criptografado com a chave do TGS
+             */
+            String tgsPassword = database.map.get("tgs");
+            clientFilepath = "F:\\Kerberos\\Client\\tgs_ticket.des"; 
+            try {
+                fileUtils = new FileUtils(tgsPassword);
+                fileUtils.writeEncryptedObject(ast, clientFilepath);
+            } catch (InvalidKeyException ex) {
+                Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NoSuchAlgorithmException ex) {
+                Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvalidKeySpecException ex) {
+                Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NoSuchPaddingException ex) {
+                Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         
-        //TODO Encriptar os dois
-        return asr;
     }
     
     public static void main(String[] args) throws RemoteException {
