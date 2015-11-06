@@ -13,8 +13,6 @@ import java.util.HashMap;
  */
 public class Database {
 
-    private static String User1Pass = "1234";
-    private static String User2Pass = "9876";
 
     public HashMap<String, String> map;
 
@@ -22,8 +20,8 @@ public class Database {
     
     public Database() {
         map = new HashMap<>();
-        map.put("vitortozzi", "1234");
-        map.put("ze", "9876");
+        map.put("cliente", "vitor123");
+        map.put("tgs", "tgs");
     }
     
     
