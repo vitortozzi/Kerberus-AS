@@ -21,8 +21,10 @@ import javax.crypto.NoSuchPaddingException;
 import message.ASAckResponse;
 import message.ASRequest;
 import message.ASResponse;
+import message.ASTicket;
 import message.ClientRequest;
 import utils.FileUtils;
+import utils.HashUtils;
 import utils.RandomUtils;
 
 /**
@@ -40,6 +42,8 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
     @Override
     public ASResponse doLogin(ASRequest request) {   
         
+        ASResponse asr = null;
+        
         database = new Database();
         
         /**
@@ -52,12 +56,12 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
          * Descriptografa a mensagem enviada pelo cliente baseado em sua senha
          */
         FileUtils fileUtils;
+        ClientRequest decrypted = null;
         try {
             String ASFilepath = "F:\\Kerberos\\AS\\clientRequest.des";
             fileUtils = new FileUtils(clientPassword);
-            ClientRequest decrypted = (ClientRequest) fileUtils.readEncryptedObject(ASFilepath);
-            System.out.println("Requisição do cliente desencriptada:");
-            decrypted.print();
+            decrypted = (ClientRequest) fileUtils.readEncryptedObject(ASFilepath);
+            
         } catch (InvalidKeyException ex) {
             Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
         } catch (NoSuchAlgorithmException ex) {
@@ -71,8 +75,24 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
         }
+        if(decrypted!=null){
+            System.out.println("Requisição do cliente desencriptada:");
+            decrypted.print();
+            
+            String sessionKey = "";
+            try {
+                sessionKey = HashUtils.generateSessionKey(clientID);
+            } catch (NoSuchAlgorithmException ex) {
+                Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            ASAckResponse ackResponse = new ASAckResponse(sessionKey, decrypted.randomNumber, decrypted.timestamp, decrypted.serviceID);
+            ASTicket ast = new ASTicket(clientID, decrypted.timestamp, sessionKey, decrypted.serviceID, decrypted.randomNumber);
+            asr = new ASResponse(ackResponse, ast);
+        }
         
-        return null;
+        //TODO Encriptar os dois
+        return asr;
     }
     
     public static void main(String[] args) throws RemoteException {
