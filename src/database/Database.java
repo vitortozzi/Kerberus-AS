@@ -21,7 +21,7 @@ public class Database {
     public Database() {
         map = new HashMap<>();
         map.put("cliente", "vitor123");
-        map.put("tgs", "tgs45678");
+        map.put("tgs", "tgs12345");
     }
     
     
