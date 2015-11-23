@@ -18,6 +18,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.JOptionPane;
 import message.ASAckResponse;
 import message.ASRequest;
 import message.ASResponse;
@@ -25,6 +26,7 @@ import message.ASTicket;
 import message.ClientRequest;
 import utils.FileUtils;
 import utils.HashUtils;
+import utils.TimeUtils;
 
 /**
  *
@@ -55,7 +57,7 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
         FileUtils fileUtils = null;
         ClientRequest decrypted = null;
         try {
-            String ASFilepath = "F:\\Kerberos\\AS\\clientRequest.des";
+            String ASFilepath = "C:\\Kerberos\\AS\\clientRequest.des";
             fileUtils = new FileUtils(clientPassword);
             decrypted = (ClientRequest) fileUtils.readEncryptedObject(ASFilepath);
             
@@ -78,6 +80,10 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
             decrypted.print();
             
             //TODO Verificar validade do timestamp
+            if(!TimeUtils.checkValidTimestamp(decrypted.timestamp)){
+                JOptionPane.showMessageDialog(null, "O Ticket de requisição ao AS perdeu a validade.");
+            }
+            
             String sessionKey = "";
             try {
                 sessionKey = HashUtils.generateSessionKey(clientID);
@@ -91,7 +97,7 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
             /**
              * Retorna ao client o ACK criptografado com a chave do cliente
              */
-            String clientFilepath = "F:\\Kerberos\\Client\\ack.des";
+            String clientFilepath = "C:\\Kerberos\\Client\\ack.des";
             try {
                 fileUtils.writeEncryptedObject(ackResponse, clientFilepath);
             } catch (IOException ex) {
@@ -104,7 +110,7 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
              * Retorna ao cliente o Ticket para o TGS criptografado com a chave do TGS
              */
             String tgsPassword = database.map.get("tgs");
-            clientFilepath = "F:\\Kerberos\\Client\\tgs_ticket.des"; 
+            clientFilepath = "C:\\Kerberos\\Client\\tgs_ticket.des"; 
             try {
                 fileUtils = new FileUtils(tgsPassword);
                 fileUtils.writeEncryptedObject(ast, clientFilepath);
