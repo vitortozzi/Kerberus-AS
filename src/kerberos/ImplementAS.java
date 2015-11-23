@@ -26,6 +26,7 @@ import message.ASTicket;
 import message.ClientRequest;
 import utils.FileUtils;
 import utils.HashUtils;
+import utils.MessageDialogUtils;
 import utils.TimeUtils;
 
 /**
@@ -57,21 +58,12 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
         FileUtils fileUtils = null;
         ClientRequest decrypted = null;
         try {
-            String ASFilepath = "C:\\Kerberos\\AS\\clientRequest.des";
+            String ASFilepath = "F:\\Kerberos\\AS\\clientRequest.des";
             fileUtils = new FileUtils(clientPassword);
             decrypted = (ClientRequest) fileUtils.readEncryptedObject(ASFilepath);
             
-        } catch (InvalidKeyException ex) {
-            Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidKeySpecException ex) {
-            Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchPaddingException ex) {
-            Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
+        } catch (InvalidKeyException|NoSuchAlgorithmException|InvalidKeySpecException|NoSuchPaddingException|IOException|ClassNotFoundException ex) {
+            JOptionPane.showMessageDialog(null, "Houve um erro descriptografar a mensagem. A senha pode não ser correspondente");
             Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
         }
         if(decrypted!=null){
@@ -97,12 +89,11 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
             /**
              * Retorna ao client o ACK criptografado com a chave do cliente
              */
-            String clientFilepath = "C:\\Kerberos\\Client\\ack.des";
+            String clientFilepath = "F:\\Kerberos\\Client\\ack.des";
             try {
                 fileUtils.writeEncryptedObject(ackResponse, clientFilepath);
-            } catch (IOException ex) {
-                Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InvalidKeyException ex) {
+            } catch (IOException| InvalidKeyException ex) {
+                MessageDialogUtils.showErrorEncryptDialog();
                 Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
             }
             
@@ -110,19 +101,12 @@ public class ImplementAS extends UnicastRemoteObject implements InterfaceAS{
              * Retorna ao cliente o Ticket para o TGS criptografado com a chave do TGS
              */
             String tgsPassword = database.map.get("tgs");
-            clientFilepath = "C:\\Kerberos\\Client\\tgs_ticket.des"; 
+            clientFilepath = "F:\\Kerberos\\Client\\tgs_ticket.des"; 
             try {
                 fileUtils = new FileUtils(tgsPassword);
                 fileUtils.writeEncryptedObject(ast, clientFilepath);
-            } catch (InvalidKeyException ex) {
-                Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (NoSuchAlgorithmException ex) {
-                Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InvalidKeySpecException ex) {
-                Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (NoSuchPaddingException ex) {
-                Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
+            } catch (InvalidKeyException|NoSuchAlgorithmException|InvalidKeySpecException|NoSuchPaddingException|IOException ex) {
+                MessageDialogUtils.showErrorEncryptDialog();
                 Logger.getLogger(ImplementAS.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
