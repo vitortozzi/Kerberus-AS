@@ -20,8 +20,9 @@ public class Database {
     
     public Database() {
         map = new HashMap<>();
-        map.put("cliente", "vitor123");
-        map.put("tgs", "tgs12345");
+        map.put("cliente", "4983a0ab");
+        map.put("tgs", "b8e0e9cc");
+        map.put("server", "cf1e8c14");
     }
     
     

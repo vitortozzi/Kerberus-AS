@@ -21,7 +21,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.swing.JOptionPane;
 import message.ASAckResponse;
 import message.ASRequest;
-import message.ASResponse;
 import message.ASTicket;
 import message.ClientRequest;
 import utils.FileUtils;
